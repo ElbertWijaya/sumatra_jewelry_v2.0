@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createOrder } from '@/services/orders';
+import InventoryPicker from '@/ui/InventoryPicker';
 
 const itemSchema = z.object({ name: z.string().min(1), price: z.number().min(0), qty: z.number().int().min(1) });
 const schema = z.object({ customerName: z.string().min(1), items: z.array(itemSchema).min(1) });
@@ -11,21 +12,22 @@ const schema = z.object({ customerName: z.string().min(1), items: z.array(itemSc
 type FormData = z.infer<typeof schema>;
 
 export default function SalesNewOrder() {
-  const { register, setValue, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { watch, setValue, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { customerName: '', items: [] }
   });
 
   const [tempItem, setTempItem] = useState({ name: '', price: '', qty: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [openPicker, setOpenPicker] = useState(false);
+  const itemsWatch = watch('items');
 
   const addItem = () => {
     const name = tempItem.name.trim();
     const price = Number(tempItem.price);
     const qty = Number(tempItem.qty);
     if (!name || isNaN(price) || isNaN(qty) || qty < 1) return;
-    // @ts-expect-error register types
-    const current = (register('items').value ?? []) as any[];
+    const current = (itemsWatch ?? []) as any[];
     const next = [...current, { name, price, qty }];
     setValue('items', next, { shouldValidate: true });
     setTempItem({ name: '', price: '', qty: '' });
@@ -60,13 +62,13 @@ export default function SalesNewOrder() {
           <TextInput placeholder="Price" keyboardType="numeric" value={tempItem.price} onChangeText={(v) => setTempItem((s) => ({ ...s, price: v }))} className="w-24 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-black dark:text-white" />
           <TextInput placeholder="Qty" keyboardType="numeric" value={tempItem.qty} onChangeText={(v) => setTempItem((s) => ({ ...s, qty: v }))} className="w-20 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-black dark:text-white" />
           <Pressable onPress={addItem} className="px-3 py-2 rounded-lg bg-brand"><Text className="text-white">Add</Text></Pressable>
+          <Pressable onPress={() => setOpenPicker(true)} className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700"><Text className="text-black dark:text-white">From Inventory</Text></Pressable>
         </View>
       </View>
       {errors.items && <Text className="text-red-600">At least one item</Text>}
 
       {/* Items preview */}
-      {/* @ts-expect-error read items value */}
-      <FlatList data={(register('items').value ?? []) as any[]} keyExtractor={(_, idx) => String(idx)} contentContainerStyle={{ gap: 8 }} renderItem={({ item }) => (
+      <FlatList data={(itemsWatch ?? []) as any[]} keyExtractor={(_, idx) => String(idx)} contentContainerStyle={{ gap: 8 }} renderItem={({ item }) => (
         <View className="p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900">
           <View className="flex-row justify-between">
             <Text className="font-semibold text-black dark:text-white">{item.name}</Text>
@@ -79,6 +81,18 @@ export default function SalesNewOrder() {
       <Pressable disabled={submitting} onPress={handleSubmit(onSubmit)} className={`px-3 py-3 rounded-lg ${submitting ? 'bg-gray-300 dark:bg-gray-700' : 'bg-brand'}`}>
         <Text className="text-white font-semibold">Submit</Text>
       </Pressable>
+
+      {openPicker && (
+        <InventoryPicker
+          onClose={() => setOpenPicker(false)}
+          onSelect={(inv) => {
+            const current = (itemsWatch ?? []) as any[];
+            const next = [...current, { name: inv.name, price: inv.price, qty: 1 }];
+            setValue('items', next, { shouldValidate: true });
+            setOpenPicker(false);
+          }}
+        />
+      )}
     </View>
   );
 }

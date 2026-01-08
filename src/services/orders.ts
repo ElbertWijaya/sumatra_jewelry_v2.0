@@ -1,4 +1,4 @@
-import type { Order, OrderItem, OrderQuery, PagedResult } from '@/types/order';
+import type { Order, OrderItem, OrderQuery, PagedResult, OrderStatus } from '@/types/order';
 
 const statuses = ['draft','ongoing','completed','cancelled'] as const;
 
@@ -89,4 +89,21 @@ export async function createOrder(payload: { customerName: string; items: OrderI
   DATA.unshift(order);
   await new Promise((r) => setTimeout(r, 200));
   return order;
+}
+
+export async function getOrder(id: string): Promise<Order | null> {
+  const found = DATA.find((o) => o.id === id) ?? null;
+  await new Promise((r) => setTimeout(r, 150));
+  return found ? { ...found } : null;
+}
+
+export async function updateOrderStatus(id: string, status: OrderStatus, note?: string): Promise<Order | null> {
+  const idx = DATA.findIndex((o) => o.id === id);
+  if (idx === -1) return null;
+  const current = DATA[idx];
+  const updated: Order = { ...current, status, updatedAt: new Date().toISOString() };
+  // In a real app, notes would be stored; for prototype, optional no-op
+  DATA[idx] = updated;
+  await new Promise((r) => setTimeout(r, 150));
+  return { ...updated };
 }

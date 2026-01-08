@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList } from 'react-native';
+import { Link } from 'expo-router';
 import { fetchOrders } from '@/services/orders';
 import type { Order, OrderQuery, OrderStatus, OrderSortBy, OrderSortDir } from '@/types/order';
 
@@ -77,17 +78,19 @@ export default function SalesOngoing() {
         onRefresh={load}
         contentContainerStyle={{ gap: 8, paddingBottom: 16 }}
         renderItem={({ item }) => (
-          <View className="p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900">
-            <View className="flex-row justify-between">
-              <Text className="font-semibold text-black dark:text-white">{item.code}</Text>
-              <Text className="text-brand font-semibold">Rp {item.total.toLocaleString()}</Text>
-            </View>
-            <Text className="text-xs text-gray-600 dark:text-gray-300">{item.customerName} • {item.items.length} items • {item.status}</Text>
-            <View className="flex-row justify-between mt-1">
-              <Text className="text-sm text-gray-700 dark:text-gray-200">Updated: {new Date(item.updatedAt).toLocaleString()}</Text>
-              <Text className="text-xs text-gray-500">Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
-            </View>
-          </View>
+          <Link href={`/(sales)/order/${item.id}`} asChild>
+            <Pressable className="p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900">
+              <View className="flex-row justify-between">
+                <Text className="font-semibold text-black dark:text-white">{item.code}</Text>
+                <Text className="text-brand font-semibold">Rp {item.total.toLocaleString()}</Text>
+              </View>
+              <Text className="text-xs text-gray-600 dark:text-gray-300">{item.customerName} • {item.items.length} items • {item.status}</Text>
+              <View className="flex-row justify-between mt-1">
+                <Text className="text-sm text-gray-700 dark:text-gray-200">Updated: {new Date(item.updatedAt).toLocaleString()}</Text>
+                <Text className="text-xs text-gray-500">Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
+              </View>
+            </Pressable>
+          </Link>
         )}
       />
 
