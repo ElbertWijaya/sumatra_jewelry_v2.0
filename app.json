@@ -15,11 +15,19 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {},
-    "web": { "bundler": "metro" },
+    "android": {
+      "package": "com.sumatrajewelrymobile"
+    },
+    "web": {
+      "bundler": "metro"
+    },
     "plugins": [
-      ["expo-router"],
-      ["expo-localization"]
+      [
+        "expo-router"
+      ],
+      [
+        "expo-localization"
+      ]
     ]
   }
 }

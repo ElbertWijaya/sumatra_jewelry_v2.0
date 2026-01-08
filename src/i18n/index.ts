@@ -14,6 +14,18 @@ const resources = {
       newInventory: 'New Inventory',
       selectRole: 'Select Role to Login',
       logout: 'Logout'
+      ,
+      orderDetail: {
+        title: 'Order',
+        customer: 'Customer',
+        status: 'Status',
+        notes: 'Notes',
+        optionalNotes: 'Optional notes',
+        subtotal: 'Subtotal',
+        advance: 'Advance',
+        cancel: 'Cancel',
+        back: 'Back'
+      }
     }
   },
   id: {
@@ -27,6 +39,18 @@ const resources = {
       newInventory: 'Tambah Stok',
       selectRole: 'Pilih Peran untuk Masuk',
       logout: 'Keluar'
+      ,
+      orderDetail: {
+        title: 'Pesanan',
+        customer: 'Pelanggan',
+        status: 'Status',
+        notes: 'Catatan',
+        optionalNotes: 'Catatan opsional',
+        subtotal: 'Subtotal',
+        advance: 'Lanjut',
+        cancel: 'Batalkan',
+        back: 'Kembali'
+      }
     }
   }
 };
