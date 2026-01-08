@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useAuthStore } from '@/src/state/auth';
+import { useAuthStore } from '@/state/auth';
 
 const ROLES = [
   { key: 'sales', label: 'Sales' },

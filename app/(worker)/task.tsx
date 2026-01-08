@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList } from 'react-native';
-import { fetchOrders } from '@/services/orders';
-import type { Order, OrderQuery, OrderStatus, OrderSortBy, OrderSortDir } from '@/types/order';
+import { fetchTasks } from '@/services/tasks';
+import type { Task, TaskQuery, WorkerRole, TaskStatus, TaskSortBy, TaskSortDir } from '@/types/task';
+import { useAuthStore } from '@/state/auth';
 
 const PAGE_SIZE = 10;
 
-export default function SalesOngoing() {
-  const [items, setItems] = useState<Order[]>([]);
+export default function WorkerTask() {
+  const role = useAuthStore((s) => s.role) as WorkerRole | null;
+  const [items, setItems] = useState<Task[]>([]);
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [query, setQuery] = useState<OrderQuery>({ page: 1, pageSize: PAGE_SIZE, sortBy: 'updatedAt', sortDir: 'desc', status: 'ongoing' });
+  const [query, setQuery] = useState<TaskQuery>({ page: 1, pageSize: PAGE_SIZE, sortBy: 'updatedAt', sortDir: 'desc', role: role ?? 'all' });
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<OrderStatus | 'all'>('ongoing');
-  const [sortBy, setSortBy] = useState<OrderSortBy>('updatedAt');
-  const [sortDir, setSortDir] = useState<OrderSortDir>('desc');
+  const [selectedRole, setSelectedRole] = useState<WorkerRole | 'all'>(role ?? 'all');
+  const [status, setStatus] = useState<TaskStatus | 'all'>('all');
+  const [sortBy, setSortBy] = useState<TaskSortBy>('updatedAt');
+  const [sortDir, setSortDir] = useState<TaskSortDir>('desc');
 
   const load = async () => {
     setLoading(true);
-    const { items, pages } = await fetchOrders({ ...query, search, status, sortBy, sortDir });
+    const { items, pages } = await fetchTasks({ ...query, search, role: selectedRole, status, sortBy, sortDir });
     setItems(items);
     setPages(pages);
     setLoading(false);
@@ -26,21 +29,22 @@ export default function SalesOngoing() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.page, search, status, sortBy, sortDir]);
+  }, [query.page, search, selectedRole, status, sortBy, sortDir]);
 
-  const statuses: (OrderStatus | 'all')[] = ['all','draft','ongoing','completed','cancelled'];
-  const sorters: { key: OrderSortBy; label: string }[] = [
+  const roles: (WorkerRole | 'all')[] = ['all','designer','carver','caster','diamondsetter','finisher'];
+  const statuses: (TaskStatus | 'all')[] = ['all','assigned','in-progress','checked','verified','done'];
+  const sorters: { key: TaskSortBy; label: string }[] = [
     { key: 'updatedAt', label: 'Updated' },
-    { key: 'customerName', label: 'Customer' },
-    { key: 'total', label: 'Total' }
+    { key: 'orderCode', label: 'Order' },
+    { key: 'title', label: 'Title' }
   ];
 
   return (
     <View className="flex-1 p-4 gap-3 bg-white dark:bg-black">
-      <Text className="text-xl font-bold text-black dark:text-white">Ongoing Orders</Text>
+      <Text className="text-xl font-bold text-black dark:text-white">Tasks</Text>
       <View className="flex-row gap-2 items-center">
         <TextInput
-          placeholder="Search Code/Customer"
+          placeholder="Search Title/Order"
           value={search}
           onChangeText={setSearch}
           className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-black dark:text-white"
@@ -49,6 +53,14 @@ export default function SalesOngoing() {
         <Pressable className="px-3 py-2 rounded-lg bg-brand" onPress={() => setQuery({ ...query, page: 1 })}>
           <Text className="text-white font-semibold">Go</Text>
         </Pressable>
+      </View>
+
+      <View className="flex-row gap-2 flex-wrap">
+        {roles.map((r) => (
+          <Pressable key={r} onPress={() => { setSelectedRole(r); setQuery({ ...query, page: 1 }); }} className={`px-3 py-2 rounded-full border ${selectedRole === r ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-700'}`}>
+            <Text className={`${selectedRole === r ? 'text-white' : 'text-black dark:text-white'}`}>{String(r)}</Text>
+          </Pressable>
+        ))}
       </View>
 
       <View className="flex-row gap-2 flex-wrap">
@@ -79,13 +91,12 @@ export default function SalesOngoing() {
         renderItem={({ item }) => (
           <View className="p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900">
             <View className="flex-row justify-between">
-              <Text className="font-semibold text-black dark:text-white">{item.code}</Text>
-              <Text className="text-brand font-semibold">Rp {item.total.toLocaleString()}</Text>
+              <Text className="font-semibold text-black dark:text-white">{item.title}</Text>
+              <Text className="text-brand font-semibold">{item.status}</Text>
             </View>
-            <Text className="text-xs text-gray-600 dark:text-gray-300">{item.customerName} • {item.items.length} items • {item.status}</Text>
+            <Text className="text-xs text-gray-600 dark:text-gray-300">{item.orderCode} • {item.role}</Text>
             <View className="flex-row justify-between mt-1">
               <Text className="text-sm text-gray-700 dark:text-gray-200">Updated: {new Date(item.updatedAt).toLocaleString()}</Text>
-              <Text className="text-xs text-gray-500">Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
             </View>
           </View>
         )}

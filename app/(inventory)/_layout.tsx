@@ -3,7 +3,7 @@ import { Pressable, Text } from 'react-native';
 import { useAuthStore } from '@/state/auth';
 import { useTranslation } from 'react-i18next';
 
-export default function SalesLayout() {
+export default function InventoryLayout() {
   const logout = useAuthStore((s) => s.logout);
   const { t } = useTranslation();
   return (
@@ -13,8 +13,8 @@ export default function SalesLayout() {
       </Pressable>
     ) }}>
       <Tabs.Screen name="home" options={{ title: t('home') }} />
-      <Tabs.Screen name="ongoing" options={{ title: t('ongoing') }} />
-      <Tabs.Screen name="new-order" options={{ title: t('newOrder') }} />
+      <Tabs.Screen name="stok" options={{ title: t('stok') }} />
+      <Tabs.Screen name="new-inventory" options={{ title: t('newInventory') }} />
       <Tabs.Screen name="notifications" options={{ title: t('notification') }} />
       <Tabs.Screen name="profile" options={{ title: t('profile') }} />
     </Tabs>

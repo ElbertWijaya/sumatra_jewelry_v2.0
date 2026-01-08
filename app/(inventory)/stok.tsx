@@ -1,23 +1,24 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, FlatList } from 'react-native';
-import { fetchOrders } from '@/services/orders';
-import type { Order, OrderQuery, OrderStatus, OrderSortBy, OrderSortDir } from '@/types/order';
+import { fetchInventory } from '@/services/inventory';
+import type { InventoryItem, InventoryQuery, SortBy, SortDir } from '@/types/inventory';
 
 const PAGE_SIZE = 10;
 
-export default function SalesOngoing() {
-  const [items, setItems] = useState<Order[]>([]);
+export default function InventoryStok() {
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [query, setQuery] = useState<OrderQuery>({ page: 1, pageSize: PAGE_SIZE, sortBy: 'updatedAt', sortDir: 'desc', status: 'ongoing' });
+  const [query, setQuery] = useState<InventoryQuery>({ page: 1, pageSize: PAGE_SIZE, sortBy: 'updatedAt', sortDir: 'desc' });
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<OrderStatus | 'all'>('ongoing');
-  const [sortBy, setSortBy] = useState<OrderSortBy>('updatedAt');
-  const [sortDir, setSortDir] = useState<OrderSortDir>('desc');
+  const [category, setCategory] = useState<'all' | any>('all');
+  const [metal, setMetal] = useState<'all' | any>('all');
+  const [sortBy, setSortBy] = useState<SortBy>('updatedAt');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const load = async () => {
     setLoading(true);
-    const { items, pages } = await fetchOrders({ ...query, search, status, sortBy, sortDir });
+    const { items, pages } = await fetchInventory({ ...query, search, category, metal, sortBy, sortDir });
     setItems(items);
     setPages(pages);
     setLoading(false);
@@ -26,21 +27,23 @@ export default function SalesOngoing() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.page, search, status, sortBy, sortDir]);
+  }, [query.page, search, category, metal, sortBy, sortDir]);
 
-  const statuses: (OrderStatus | 'all')[] = ['all','draft','ongoing','completed','cancelled'];
-  const sorters: { key: OrderSortBy; label: string }[] = [
+  const categories = ['all', 'ring', 'necklace', 'bracelet', 'earring', 'pendant'] as const;
+  const metals = ['all', 'gold', 'silver', 'platinum'] as const;
+  const sorters: { key: SortBy; label: string }[] = [
     { key: 'updatedAt', label: 'Updated' },
-    { key: 'customerName', label: 'Customer' },
-    { key: 'total', label: 'Total' }
+    { key: 'name', label: 'Name' },
+    { key: 'price', label: 'Price' },
+    { key: 'stock', label: 'Stock' }
   ];
 
   return (
     <View className="flex-1 p-4 gap-3 bg-white dark:bg-black">
-      <Text className="text-xl font-bold text-black dark:text-white">Ongoing Orders</Text>
+      <Text className="text-xl font-bold text-black dark:text-white">Inventory</Text>
       <View className="flex-row gap-2 items-center">
         <TextInput
-          placeholder="Search Code/Customer"
+          placeholder="Search SKU/Name"
           value={search}
           onChangeText={setSearch}
           className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-black dark:text-white"
@@ -52,9 +55,17 @@ export default function SalesOngoing() {
       </View>
 
       <View className="flex-row gap-2 flex-wrap">
-        {statuses.map((s) => (
-          <Pressable key={s} onPress={() => { setStatus(s); setQuery({ ...query, page: 1 }); }} className={`px-3 py-2 rounded-full border ${status === s ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-700'}`}>
-            <Text className={`${status === s ? 'text-white' : 'text-black dark:text-white'}`}>{String(s)}</Text>
+        {categories.map((c) => (
+          <Pressable key={c} onPress={() => { setCategory(c); setQuery({ ...query, page: 1 }); }} className={`px-3 py-2 rounded-full border ${category === c ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-700'}`}>
+            <Text className={`${category === c ? 'text-white' : 'text-black dark:text-white'}`}>{String(c)}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <View className="flex-row gap-2 flex-wrap">
+        {metals.map((m) => (
+          <Pressable key={m} onPress={() => { setMetal(m); setQuery({ ...query, page: 1 }); }} className={`px-3 py-2 rounded-full border ${metal === m ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-700'}`}>
+            <Text className={`${metal === m ? 'text-white' : 'text-black dark:text-white'}`}>{String(m)}</Text>
           </Pressable>
         ))}
       </View>
@@ -79,13 +90,13 @@ export default function SalesOngoing() {
         renderItem={({ item }) => (
           <View className="p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900">
             <View className="flex-row justify-between">
-              <Text className="font-semibold text-black dark:text-white">{item.code}</Text>
-              <Text className="text-brand font-semibold">Rp {item.total.toLocaleString()}</Text>
+              <Text className="font-semibold text-black dark:text-white">{item.name}</Text>
+              <Text className="text-brand font-semibold">Rp {item.price.toLocaleString()}</Text>
             </View>
-            <Text className="text-xs text-gray-600 dark:text-gray-300">{item.customerName} • {item.items.length} items • {item.status}</Text>
+            <Text className="text-xs text-gray-600 dark:text-gray-300">{item.sku} • {item.category} • {item.metal}</Text>
             <View className="flex-row justify-between mt-1">
-              <Text className="text-sm text-gray-700 dark:text-gray-200">Updated: {new Date(item.updatedAt).toLocaleString()}</Text>
-              <Text className="text-xs text-gray-500">Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
+              <Text className="text-sm text-gray-700 dark:text-gray-200">Stock: {item.stock}</Text>
+              <Text className="text-xs text-gray-500">Updated: {new Date(item.updatedAt).toLocaleDateString()}</Text>
             </View>
           </View>
         )}
