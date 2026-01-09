@@ -6,6 +6,13 @@ import type { Order, OrderQuery, OrderStatus, OrderSortBy, OrderSortDir } from '
 
 const PAGE_SIZE = 10;
 
+const statusColors: Record<OrderStatus, string> = {
+  draft: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200',
+  ongoing: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200',
+  completed: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200',
+  cancelled: 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-200',
+};
+
 export default function SalesOngoing() {
   const [items, setItems] = useState<Order[]>([]);
   const [pages, setPages] = useState(1);
@@ -37,22 +44,29 @@ export default function SalesOngoing() {
   ];
 
   return (
-    <View className="flex-1 p-4 gap-3 bg-white dark:bg-black">
-      <Text className="text-xl font-bold text-black dark:text-white">Ongoing Orders</Text>
-      <View className="flex-row gap-2 items-center">
+    <View className="flex-1 bg-zinc-50 dark:bg-zinc-950">
+      <View className="px-4 pt-4 pb-3 border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
+        <Text className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Ongoing Orders</Text>
+        <Text className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+          Monitor pesanan berjalan, filter berdasarkan status dan pelanggan.
+        </Text>
+      </View>
+
+      <View className="p-4 gap-3">
+        <View className="flex-row gap-2 items-center">
         <TextInput
           placeholder="Search Code/Customer"
           value={search}
           onChangeText={setSearch}
-          className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-black dark:text-white"
+          className="flex-1 border border-zinc-300 dark:border-zinc-800 rounded-xl px-3 py-2 text-zinc-900 dark:text-zinc-50 bg-white dark:bg-zinc-900"
           placeholderTextColor="#888"
         />
-        <Pressable className="px-3 py-2 rounded-lg bg-brand" onPress={() => setQuery({ ...query, page: 1 })}>
-          <Text className="text-white font-semibold">Go</Text>
+        <Pressable className="px-3 py-2 rounded-xl bg-brand" onPress={() => setQuery({ ...query, page: 1 })}>
+          <Text className="text-white font-semibold">Cari</Text>
         </Pressable>
       </View>
 
-      <View className="flex-row gap-2 flex-wrap">
+        <View className="flex-row gap-2 flex-wrap mt-1">
         {statuses.map((s) => (
           <Pressable key={s} onPress={() => { setStatus(s); setQuery({ ...query, page: 1 }); }} className={`px-3 py-2 rounded-full border ${status === s ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-700'}`}>
             <Text className={`${status === s ? 'text-white' : 'text-black dark:text-white'}`}>{String(s)}</Text>
@@ -60,7 +74,7 @@ export default function SalesOngoing() {
         ))}
       </View>
 
-      <View className="flex-row gap-2 items-center">
+        <View className="flex-row gap-2 items-center mt-1">
         {sorters.map((s) => (
           <Pressable key={s.key} onPress={() => setSortBy(s.key)} className={`px-3 py-2 rounded-lg border ${sortBy === s.key ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-700'}`}>
             <Text className={`${sortBy === s.key ? 'text-white' : 'text-black dark:text-white'}`}>{s.label}</Text>
@@ -71,7 +85,7 @@ export default function SalesOngoing() {
         </Pressable>
       </View>
 
-      <FlatList
+        <FlatList
         data={items}
         keyExtractor={(it) => it.id}
         refreshing={loading}
@@ -79,35 +93,55 @@ export default function SalesOngoing() {
         contentContainerStyle={{ gap: 8, paddingBottom: 16 }}
         renderItem={({ item }) => (
           <Link href={`/(sales)/order/${item.id}`} asChild>
-            <Pressable className="p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-900">
-              <View className="flex-row justify-between">
-                <Text className="font-semibold text-black dark:text-white">{item.code}</Text>
-                <Text className="text-brand font-semibold">Rp {item.total.toLocaleString()}</Text>
+            <Pressable className="p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="font-semibold text-zinc-900 dark:text-zinc-50">{item.code}</Text>
+                <View className={`px-2 py-0.5 rounded-full ${statusColors[item.status]}`}>
+                  <Text className="text-[11px] font-semibold capitalize">{item.status}</Text>
+                </View>
               </View>
-              <Text className="text-xs text-gray-600 dark:text-gray-300">{item.customerName} • {item.items.length} items • {item.status}</Text>
+              <View className="flex-row justify-between items-center mb-1">
+                <Text className="text-xs text-zinc-600 dark:text-zinc-300">{item.customerName} • {item.items.length} items</Text>
+                <Text className="text-brand font-semibold text-sm">Rp {item.total.toLocaleString()}</Text>
+              </View>
               <View className="flex-row justify-between mt-1">
-                <Text className="text-sm text-gray-700 dark:text-gray-200">Updated: {new Date(item.updatedAt).toLocaleString()}</Text>
-                <Text className="text-xs text-gray-500">Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
+                <Text className="text-[11px] text-zinc-500 dark:text-zinc-400">Updated {new Date(item.updatedAt).toLocaleString()}</Text>
+                <Text className="text-[11px] text-zinc-400">Created {new Date(item.createdAt).toLocaleDateString()}</Text>
               </View>
             </Pressable>
           </Link>
         )}
       />
+      </View>
 
-      <View className="flex-row items-center justify-center gap-2 py-2">
-        <Pressable disabled={query.page <= 1} onPress={() => setQuery({ ...query, page: Math.max(1, query.page - 1) })} className={`px-3 py-2 rounded-lg ${query.page <= 1 ? 'bg-gray-200 dark:bg-gray-800' : 'bg-brand'}`}>
-          <Text className={`${query.page <= 1 ? 'text-gray-500' : 'text-white'}`}>Prev</Text>
+      <View className="flex-row items-center justify-center gap-2 py-2 border-t border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
+        <Pressable
+          disabled={query.page <= 1}
+          onPress={() => setQuery({ ...query, page: Math.max(1, query.page - 1) })}
+          className={`px-3 py-2 rounded-lg min-w-[72px] items-center ${query.page <= 1 ? 'bg-zinc-200 dark:bg-zinc-800' : 'bg-brand'}`}
+        >
+          <Text className={`${query.page <= 1 ? 'text-zinc-500' : 'text-white'}`}>Prev</Text>
         </Pressable>
         {Array.from({ length: pages }).slice(0, 5).map((_, idx) => {
           const p = idx + 1;
           return (
-            <Pressable key={p} onPress={() => setQuery({ ...query, page: p })} className={`px-3 py-2 rounded-lg border ${query.page === p ? 'bg-brand border-brand' : 'border-gray-300 dark:border-gray-700'}`}>
-              <Text className={`${query.page === p ? 'text-white' : 'text-black dark:text-white'}`}>{p}</Text>
+            <Pressable
+              key={p}
+              onPress={() => setQuery({ ...query, page: p })}
+              className={`px-3 py-2 rounded-lg border min-w-[40px] items-center ${
+                query.page === p ? 'bg-brand border-brand' : 'border-zinc-300 dark:border-zinc-700'
+              }`}
+            >
+              <Text className={`${query.page === p ? 'text-white' : 'text-zinc-900 dark:text-zinc-50'}`}>{p}</Text>
             </Pressable>
           );
         })}
-        <Pressable disabled={query.page >= pages} onPress={() => setQuery({ ...query, page: Math.min(pages, query.page + 1) })} className={`px-3 py-2 rounded-lg ${query.page >= pages ? 'bg-gray-200 dark:bg-gray-800' : 'bg-brand'}`}>
-          <Text className={`${query.page >= pages ? 'text-gray-500' : 'text-white'}`}>Next</Text>
+        <Pressable
+          disabled={query.page >= pages}
+          onPress={() => setQuery({ ...query, page: Math.min(pages, query.page + 1) })}
+          className={`px-3 py-2 rounded-lg min-w-[72px] items-center ${query.page >= pages ? 'bg-zinc-200 dark:bg-zinc-800' : 'bg-brand'}`}
+        >
+          <Text className={`${query.page >= pages ? 'text-zinc-500' : 'text-white'}`}>Next</Text>
         </Pressable>
       </View>
     </View>

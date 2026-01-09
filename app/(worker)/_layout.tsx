@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Pressable, Text } from 'react-native';
 import { useAuthStore } from '@/state/auth';
 import { useTranslation } from 'react-i18next';
@@ -6,9 +6,15 @@ import { useTranslation } from 'react-i18next';
 export default function WorkerLayout() {
   const logout = useAuthStore((s) => s.logout);
   const { t } = useTranslation();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/(auth)/login');
+  };
   return (
     <Tabs screenOptions={{ headerRight: () => (
-      <Pressable onPress={logout} style={{ paddingHorizontal: 12 }}>
+      <Pressable onPress={handleLogout} style={{ paddingHorizontal: 12 }}>
         <Text>{t('logout')}</Text>
       </Pressable>
     ) }}>
