@@ -12,6 +12,8 @@ buildscript {
     }
     repositories {
         google()
+        // Kotlin artifacts mirror to reduce Maven Central issues
+        maven { url 'https://cache-redirector.jetbrains.com/maven-central' }
         mavenCentral()
     }
     dependencies {
@@ -35,6 +37,8 @@ allprojects {
         }
 
         google()
+        // Kotlin artifacts mirror to reduce Maven Central issues
+        maven { url 'https://cache-redirector.jetbrains.com/maven-central' }
         mavenCentral()
         maven { url 'https://www.jitpack.io' }
     }

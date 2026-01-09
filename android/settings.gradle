@@ -11,9 +11,8 @@ pluginManagement {
     }
   }
 
-  // Make the Expo Modules Gradle plugin available via an included build
-  // so modules can apply `id 'expo-module-gradle-plugin'` without fetching from remote repositories.
-  includeBuild(new File(["node", "--print", "require.resolve('expo-modules-core/package.json')"].execute(null, rootDir).text.trim(), "../android").toString())
+  // Provide the Expo Modules Gradle plugin via a local included build wrapper
+  includeBuild("build-logic-expo-plugin")
 
   def version = providers.exec {
     commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
